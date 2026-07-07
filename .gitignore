@@ -1,0 +1,12 @@
+# Ignore environment variable files anywhere in the project
+**/.env
+**/.env.example
+**/.env.tender_verifier*
+
+# Ignore any directory named UPKEEP or matching the UPKEEP pattern anywhere
+**/UPKEEP/
+*UPKEEP/
+
+# Optional: Ignore python cache and executable outputs if needed
+**/__pycache__/
+**/_output/

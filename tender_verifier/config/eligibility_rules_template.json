@@ -1,0 +1,71 @@
+{
+  "_comment": "Copy this file per tender (e.g. tenders_root/UPKEEP/eligibility_rules.json), fill in estimated_cost_inr, and the rule engine computes PASS/FAIL + a plain-English conclusion per bidder automatically. No code changes needed for a new tender - only this file.",
+
+  "tender_id": "TENDER_ID_HERE",
+  "estimated_cost_inr": 0,
+
+  "criteria": [
+    {
+      "id": "gst_present",
+      "label": "GST Registration submitted",
+      "type": "document_present",
+      "source_document_type": "GST",
+      "fail_message": "GST registration not submitted."
+    },
+    {
+      "id": "pan_present",
+      "label": "PAN Card submitted",
+      "type": "document_present",
+      "source_document_type": "PAN",
+      "fail_message": "PAN card not submitted."
+    },
+    {
+      "id": "no_blacklist_undertaking",
+      "label": "Declaration (Banned/suspended/blacklisted) submitted",
+      "type": "document_present",
+      "source_document_type": "UNDERTAKING",
+      "fail_message": "Declaration regarding banned/suspended/blacklisted status not submitted."
+    },
+    {
+      "id": "technical_spec_present",
+      "label": "Technical Specification submitted",
+      "type": "document_present",
+      "source_document_type": "TECHNICAL_SPECIFICATION",
+      "fail_message": "Technical specification not submitted as per bid requirement."
+    },
+    {
+      "id": "annual_turnover",
+      "label": "Average Annual Turnover (last 3 financial years)",
+      "type": "min_value",
+      "source_document_type": "TURNOVER_CERTIFICATE",
+      "field_used": "average_annual_turnover",
+      "min_value_inr": 0,
+      "min_value_pct_of_estimate": 30,
+      "fail_message": "The bidder failed to fulfill minimum required Average Turnover (must exceed 30% of tender value): hence Disqualified.",
+      "note": "30% here means the average annual turnover must EXCEED 30% of estimated_cost_inr. Change min_value_pct_of_estimate per tender, or set min_value_inr directly instead."
+    },
+    {
+      "id": "turnover_udin_present",
+      "label": "Turnover Certificate has valid UDIN",
+      "type": "field_present",
+      "source_document_type": "TURNOVER_CERTIFICATE",
+      "field_used": "udin",
+      "fail_message": "Turnover Certificate submitted without a valid UDIN."
+    },
+    {
+      "id": "similar_experience",
+      "label": "Past Experience of Similar Services",
+      "type": "experience_or_count",
+      "source_document_type": "EXPERIENCE_CERTIFICATE",
+      "field_used": "total_contract_value",
+      "options": [
+        { "min_count": 3, "min_value_pct_of_estimate": 40 },
+        { "min_count": 2, "min_value_pct_of_estimate": 50 },
+        { "min_count": 1, "min_value_pct_of_estimate": 80 }
+      ],
+      "aggregation": "individual_contract_meets_threshold",
+      "fail_message": "The bidder failed to fulfill minimum required Experience: hence Disqualified.",
+      "note": "PASS if the bidder has 3 contracts each >=40% of estimated cost, OR 2 contracts each >=50%, OR 1 contract >=80%. Edit the percentages per tender's actual NIT clause."
+    }
+  ]
+}

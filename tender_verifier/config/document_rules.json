@@ -1,0 +1,251 @@
+{
+  "_comment": "Each document type has: detect_keywords (weighted scoring, ported from the VBA InStr logic), min_score to confirm, and a field schema for extraction. Edit this file to add new document types or tune detection — no Python changes needed.",
+
+  "document_types": {
+
+    "PAN": {
+      "label": "PAN Card",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "Permanent Account Number Card", "weight": 5 },
+          { "phrase": "INCOME TAX DEPARTMENT", "weight": 2, "requires_with": ["GOVT. OF INDIA", "e-PAN"] }
+        ],
+        "supporting": [
+          { "phrase": "Income Tax Department", "weight": 1 },
+          { "phrase": "Permanent Account Number", "weight": 2 },
+          { "phrase": "Father", "weight": 1 },
+          { "phrase": "Date of Birth", "weight": 1 }
+        ]
+      },
+      "min_score": 4,
+      "fields": {
+        "pan_number": { "regex": "[A-Z]{5}[0-9]{4}[A-Z]{1}", "required": true },
+        "name": { "type": "llm", "required": true },
+        "father_name": { "type": "llm", "required": false },
+        "dob": { "regex": "\\d{2}[/-]\\d{2}[/-]\\d{4}", "required": false }
+      }
+    },
+
+    "GST": {
+      "label": "GST Registration Certificate",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "Form GST REG", "weight": 4, "requires_with": ["Registration"] },
+          { "phrase": "Registration Certificate", "weight": 2, "requires_with": ["Goods and Services Tax", "GSTIN"] }
+        ],
+        "supporting": [
+          { "phrase": "GSTIN", "weight": 2 },
+          { "phrase": "Legal Name", "weight": 1 },
+          { "phrase": "Trade Name", "weight": 1 },
+          { "phrase": "Constitution of Business", "weight": 1 }
+        ]
+      },
+      "min_score": 4,
+      "fields": {
+        "gstin": { "regex": "\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}\\d[Z]{1}[A-Z\\d]{1}", "required": true },
+        "legal_name": { "type": "llm", "required": true },
+        "trade_name": { "type": "llm", "required": false },
+        "registration_date": { "regex": "\\d{2}[/-]\\d{2}[/-]\\d{4}", "required": false },
+        "state": { "type": "llm", "required": false },
+        "status": { "type": "llm", "required": false }
+      }
+    },
+
+    "UDYAM": {
+      "label": "Udyam Registration Certificate",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "Udyam Registration Certificate", "weight": 5 },
+          { "phrase": "Udyam", "weight": 2, "requires_with": ["Registration", "CERTIFICATE"] }
+        ],
+        "supporting": [
+          { "phrase": "NAME OF ENTERPRISE", "weight": 2 },
+          { "phrase": "Ministry of Micro", "weight": 1 }
+        ]
+      },
+      "min_score": 4,
+      "fields": {
+        "udyam_number": { "regex": "UDYAM-[A-Z]{2}-\\d{2}-\\d{7}", "required": true },
+        "enterprise_name": { "type": "llm", "required": true },
+        "type": { "type": "llm", "required": false }
+      }
+    },
+
+    "UDYOG_AADHAR": {
+      "label": "Udyog Aadhar Registration",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "Udyog Aadhaar Registration Certificate", "weight": 5 },
+          { "phrase": "Ministry of Micro, Small and Medium Enterprises", "weight": 2, "requires_with": ["Aadhaar"] }
+        ],
+        "supporting": [ { "phrase": "Memorandum", "weight": 1 } ]
+      },
+      "min_score": 4,
+      "fields": {
+        "udyog_aadhar_number": { "type": "llm", "required": true },
+        "enterprise_name": { "type": "llm", "required": true }
+      }
+    },
+
+    "MSME": {
+      "label": "MSME / NSIC Registration",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "NATIONAL SMALL INDUSTRIES", "weight": 3, "requires_with": ["Government of"] },
+          { "phrase": "ANNEXURE TO GOVERNMENT PURCHASES ENLISTMENT CERTIFICATE", "weight": 5, "requires_with": ["A Government of india Enterprise"] }
+        ],
+        "supporting": [ { "phrase": "NSIC", "weight": 1 } ]
+      },
+      "min_score": 3,
+      "fields": {
+        "registration_number": { "type": "llm", "required": true },
+        "enterprise_name": { "type": "llm", "required": true },
+        "validity_upto": { "regex": "\\d{2}[/-]\\d{2}[/-]\\d{4}", "required": false }
+      }
+    },
+
+    "TURNOVER_CERTIFICATE": {
+      "label": "Annual Turnover Certificate (CA issued)",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "ANNUAL TURNOVER CERTIFICATE", "weight": 5 },
+          { "phrase": "TURNOVER CERTIFICATE", "weight": 5 }
+        ],
+        "supporting": [
+          { "phrase": "IT MAY CONCERN", "weight": 1 },
+          { "phrase": "Financial Year", "weight": 1 },
+          { "phrase": "Chartered", "weight": 1 },
+          { "phrase": "Accountants", "weight": 1 },
+          { "phrase": "Membership", "weight": 1 },
+          { "phrase": "UDIN", "weight": 1 }
+        ]
+      },
+      "min_score": 4,
+      "fields": {
+        "ca_name": { "type": "llm", "required": true },
+        "ca_firm_name": { "type": "llm", "required": true },
+        "membership_number": { "regex": "\\b\\d{5,6}\\b", "context": "Membership No", "required": true },
+        "frn": { "regex": "\\d{6}[A-Z]", "required": false },
+        "udin": { "regex": "[0-9]{2}[A-Z0-9]{12,16}", "context": "UDIN", "required": true },
+        "turnover_by_year": { "type": "llm", "required": true, "shape": "a list with ONE entry per financial year row shown in the table on this page, e.g. [{\"financial_year\": \"2022-23\", \"turnover_lakhs\": 1000.0}, {\"financial_year\": \"2023-24\", \"turnover_lakhs\": 1116.0}, ...] - include EVERY row on the page, do not stop at the first one" },
+        "average_annual_turnover": { "type": "llm", "required": true, "shape": "the single 'Average annual turnover' figure shown near the bottom of the table, as a plain number in lakhs - this is a DIFFERENT field from turnover_by_year, always extract both if both appear" },
+        "date": { "regex": "\\d{2}[/-]\\d{2}[/-]\\d{4}", "required": false },
+        "place": { "type": "llm", "required": false }
+      }
+    },
+
+    "EXPERIENCE_CERTIFICATE": {
+      "label": "Experience / Work Completion Certificate",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "EXPERIENCE/WORK COMPLETION CERTIFICATE", "weight": 6 },
+          { "phrase": "WORK COMPLETION CERTIFICATE", "weight": 5 },
+          { "phrase": "TO WHOM IT MAY CONCERN", "weight": 2, "requires_with": ["Tender No", "Contract"] }
+        ],
+        "supporting": [
+          { "phrase": "Tender No", "weight": 2 },
+          { "phrase": "Contract No", "weight": 2 },
+          { "phrase": "Total Contract value", "weight": 2 },
+          { "phrase": "Total payment made", "weight": 2 },
+          { "phrase": "Performance", "weight": 1 },
+          { "phrase": "Work completed", "weight": 1 }
+        ]
+      },
+      "min_score": 5,
+      "fields": {
+        "buyer": { "type": "llm", "required": true, "shape": "the company/authority that issued this certificate (appears in the report as 'Date Given by {company}')" },
+        "service_provider": { "type": "llm", "required": true },
+        "contract_name": { "type": "llm", "required": false },
+        "tender_no": { "type": "llm", "required": true },
+        "contract_no": { "type": "llm", "required": true },
+        "work_order_no": { "type": "llm", "required": false, "shape": "the work order / contract reference number, if phrased as 'Work Order No.' rather than 'Contract No.' - often the same value, extract whichever label appears" },
+        "commencement_date": { "type": "llm", "required": true },
+        "period_from": { "type": "llm", "required": false, "shape": "start date of the service period (may be same as commencement_date)" },
+        "period_to": { "type": "llm", "required": false, "shape": "end date of the service period (may be same as work_extended_upto)" },
+        "work_extended_upto": { "type": "llm", "required": false },
+        "total_contract_value": { "type": "llm", "required": true, "shape": "amount in INR, numeric" },
+        "total_payment_made": { "type": "llm", "required": true, "shape": "amount in INR, numeric" },
+        "penalty": { "type": "llm", "required": false },
+        "work_completed": { "type": "llm", "required": true },
+        "performance": { "type": "llm", "required": true },
+        "authority_name": { "type": "llm", "required": false },
+        "designation": { "type": "llm", "required": false },
+        "has_seal": { "type": "llm", "required": false, "shape": "true/false, look for a round stamp/seal image on page" },
+        "has_signature": { "type": "llm", "required": false, "shape": "true/false" }
+      }
+    },
+
+    "GEM_CONTRACT": {
+      "label": "GeM Contract",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "GEMC", "weight": 3 },
+          { "phrase": "Contract Generated Date", "weight": 3 }
+        ],
+        "supporting": [
+          { "phrase": "Contract No", "weight": 2 },
+          { "phrase": "Organisation Details", "weight": 1 },
+          { "phrase": "Financial Approval Detail", "weight": 1 },
+          { "phrase": "Paying Authority Details", "weight": 1 },
+          { "phrase": "Consignee Details", "weight": 1 },
+          { "phrase": "Service Provider Details", "weight": 1 }
+        ]
+      },
+      "min_score": 5,
+      "fields": {
+        "contract_no": { "regex": "GEMC-\\d{9,15}", "required": true },
+        "tender_no": { "regex": "GEM/20\\d{2}/[A-Z]/\\d+", "required": true },
+        "contract_date": { "regex": "\\d{1,2}\\s+\\w+\\s+20\\d{2}", "required": false },
+        "organisation": { "type": "llm", "required": false },
+        "consignee": { "type": "llm", "required": false }
+      }
+    },
+
+    "UNDERTAKING": {
+      "label": "Undertaking (non-blacklist / eligibility declaration)",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "undertaking", "weight": 2, "requires_with": ["banned", "blacklisted"] },
+          { "phrase": "undertaking", "weight": 1 }
+        ],
+        "supporting": [ { "phrase": "blacklisted", "weight": 2 }, { "phrase": "debarred", "weight": 1 } ]
+      },
+      "min_score": 2,
+      "fields": {
+        "undertaking_type": { "type": "llm", "required": false },
+        "signatory": { "type": "llm", "required": false }
+      }
+    },
+
+    "UDIN_STANDALONE": {
+      "label": "UDIN Reference",
+      "detect": {
+        "any_of_high": [ { "phrase": "UDIN:", "weight": 3 } ],
+        "supporting": []
+      },
+      "min_score": 3,
+      "fields": {
+        "udin": { "regex": "[0-9]{2}[A-Z0-9]{12,16}", "context": "UDIN", "required": true }
+      }
+    },
+
+    "TECHNICAL_SPECIFICATION": {
+      "label": "Technical Specification Submission",
+      "detect": {
+        "any_of_high": [
+          { "phrase": "Technical Specification", "weight": 3, "requires_with": ["Bid"] },
+          { "phrase": "Technical Bid", "weight": 3 }
+        ],
+        "supporting": [
+          { "phrase": "as per the bid requirement", "weight": 1 },
+          { "phrase": "Scope of work", "weight": 1 },
+          { "phrase": "Compliance", "weight": 1 }
+        ]
+      },
+      "min_score": 3,
+      "fields": {
+        "compliance_note": { "type": "llm", "required": false, "shape": "any explicit compliance/non-compliance statement on this page" }
+      }
+    }
+  }
+}

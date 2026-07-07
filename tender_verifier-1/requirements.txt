@@ -1,0 +1,14 @@
+# Core (required)
+pymupdf>=1.24         # fast native PDF text extraction + page rendering
+pytesseract>=0.3.10   # OCR (also requires the tesseract binary - see README)
+opencv-python-headless>=4.8   # image preprocessing (deskew, denoise, binarize)
+numpy>=1.24
+Pillow>=10.0
+openpyxl>=3.1          # Excel report generation
+reportlab>=4.0         # PDF report generation
+groq>=0.9              # LLM fallback for classification/extraction (optional but recommended)
+python-dotenv>=1.0     # loads GROQ_API_KEYS from a .env file instead of manual export
+
+# Optional (second OCR engine for "if one misses, another detects")
+# Uncomment if you want this - it's a heavier, torch-based install:
+# easyocr>=1.7

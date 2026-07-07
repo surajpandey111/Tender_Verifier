@@ -1,0 +1,65 @@
+{
+  "_comment": "Copy this file per tender (e.g. eligibility_rules_TENDER123.json), fill in the estimated_cost and thresholds from that tender's document, and the rule engine will compute PASS/FAIL automatically. No code changes needed.",
+
+  "tender_id": "TENDER_ID_HERE",
+  "estimated_cost_inr": 0,
+
+  "criteria": [
+    {
+      "id": "similar_experience",
+      "label": "Past Experience of Similar Services",
+      "type": "experience_or_count",
+      "source_document_type": "EXPERIENCE_CERTIFICATE",
+      "field_used": "total_contract_value",
+      "options": [
+        { "min_count": 3, "min_value_pct_of_estimate": 40 },
+        { "min_count": 2, "min_value_pct_of_estimate": 50 },
+        { "min_count": 1, "min_value_pct_of_estimate": 80 }
+      ],
+      "note": "PASS if ANY option is satisfied by qualifying experience certificates (each certificate individually must meet the per-contract value threshold implied by the option, or check total business rule - configure 'aggregation' below).",
+      "aggregation": "individual_contract_meets_threshold"
+    },
+    {
+      "id": "annual_turnover",
+      "label": "Average Annual Turnover (last 3 financial years)",
+      "type": "min_value",
+      "source_document_type": "TURNOVER_CERTIFICATE",
+      "field_used": "average_annual_turnover",
+      "min_value_inr": 0,
+      "min_value_pct_of_estimate": null,
+      "note": "Set either min_value_inr directly, or min_value_pct_of_estimate to compute from estimated_cost_inr."
+    },
+    {
+      "id": "turnover_udin_present",
+      "label": "Turnover Certificate has valid UDIN",
+      "type": "field_present",
+      "source_document_type": "TURNOVER_CERTIFICATE",
+      "field_used": "udin"
+    },
+    {
+      "id": "ca_membership_present",
+      "label": "CA Membership Number present on Turnover Certificate",
+      "type": "field_present",
+      "source_document_type": "TURNOVER_CERTIFICATE",
+      "field_used": "membership_number"
+    },
+    {
+      "id": "pan_present",
+      "label": "PAN Card submitted",
+      "type": "document_present",
+      "source_document_type": "PAN"
+    },
+    {
+      "id": "gst_present",
+      "label": "GST Registration submitted",
+      "type": "document_present",
+      "source_document_type": "GST"
+    },
+    {
+      "id": "no_blacklist_undertaking",
+      "label": "Non-blacklist / non-debarment Undertaking submitted",
+      "type": "document_present",
+      "source_document_type": "UNDERTAKING"
+    }
+  ]
+}
