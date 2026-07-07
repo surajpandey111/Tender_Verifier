@@ -10,3 +10,6 @@
 # Optional: Ignore python cache and executable outputs if needed
 **/__pycache__/
 **/_output/
+# Ignore local SQLite databases
+*.db
+**/*.db
